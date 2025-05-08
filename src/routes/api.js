@@ -15,7 +15,8 @@ import {
     sendImageToUser,
     sendImagesToUser,
     sendImageToGroup,
-    sendImagesToGroup
+    sendImagesToGroup,
+    sendVoice // Thêm sendVoice
 } from '../api/zalo/zalo.js';
 import { validateUser, adminMiddleware, addUser, getAllUsers, changePassword } from '../services/authService.js';
 import {
@@ -275,6 +276,7 @@ router.post('/sendImageToUser', sendImageToUser);
 router.post('/sendImagesToUser', sendImagesToUser);
 router.post('/sendImageToGroup', sendImageToGroup);
 router.post('/sendImagesToGroup', sendImagesToGroup);
+router.post('/sendVoice', sendVoice); // Thêm route cho sendVoice
 
 // API kiểm tra trạng thái session
 router.get('/session-test', (req, res) => {
