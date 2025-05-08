@@ -391,6 +391,72 @@ export async function getAllGroups(req, res) {
         res.status(500).json({ success: false, error: error.message });
     }
 }
+// Hàm gửi sticker đến người dùng hoặc nhóm
+export async function sendSticker(req, res) {
+    try {
+        const { sticker, threadId, ownId, type } = req.body;
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!sticker || !threadId || !ownId) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: sticker, threadId và ownId là bắt buộc' });
+        }
+        if (!sticker.id || !sticker.cateId || !sticker.type) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: sticker phải có id, cateId và type' });
+        }
+
+        // Tìm tài khoản Zalo
+        const account = zaloAccounts.find(acc => acc.ownId === ownId);
+        if (!account) {
+            return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này' });
+        }
+
+        // Gọi hàm sendSticker từ zca-js
+        const result = await account.api.sendSticker(
+            sticker,
+            threadId,
+            type === 'Group' ? ThreadType.Group : ThreadType.User
+        );
+
+        // Trả về kết quả
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+// Hàm gửi sự kiện đang gõ
+export async function sendTypingEvent(req, res) {
+    try {
+        const { id, ownId, type, destType } = req.body;
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!id || !ownId || !type) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: id, ownId và type là bắt buộc' });
+        }
+        if (type === 'User' && !destType) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: destType là bắt buộc cho type User' });
+        }
+
+        // Tìm tài khoản Zalo
+        const account = zaloAccounts.find(acc => acc.ownId === ownId);
+        if (!account) {
+            return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này' });
+        }
+
+        // Chuẩn bị options cho hàm sendTypingEvent
+        const options = {
+            type: type === 'User' ? ThreadType.User : ThreadType.Group,
+            ...(type === 'User' ? { destType } : {})
+        };
+
+        // Gọi hàm sendTypingEvent từ zca-js
+        const result = await account.api.sendTypingEvent(id, options);
+
+        // Trả về kết quả
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
 
 export async function loginZaloAccount(customProxy, cred) {
     let loginResolve;
