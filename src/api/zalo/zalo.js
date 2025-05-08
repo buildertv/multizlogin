@@ -310,6 +310,36 @@ export async function sendImagesToGroup(req, res) {
     }
 }
 
+// Hàm gửi tin nhắn thoại đến người dùng hoặc nhóm
+export async function sendVoice(req, res) {
+    try {
+        const { voiceUrl, threadId, ownId, type, ttl } = req.body;
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!voiceUrl || !threadId || !ownId) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: voiceUrl, threadId và ownId là bắt buộc' });
+        }
+
+        // Tìm tài khoản Zalo
+        const account = zaloAccounts.find(acc => acc.ownId === ownId);
+        if (!account) {
+            return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này' });
+        }
+
+        // Chuẩn bị options cho hàm sendVoice
+        const options = { voiceUrl, ttl: ttl || 0 };
+        const msgType = type || ThreadType.User;
+
+        // Gọi hàm sendVoice từ zca-js
+        const result = await account.api.sendVoice(options, threadId, msgType);
+
+        // Trả về kết quả
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 export async function loginZaloAccount(customProxy, cred) {
     let loginResolve;
     return new Promise(async (resolve, reject) => {
