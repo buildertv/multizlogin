@@ -340,6 +340,32 @@ export async function sendVoice(req, res) {
     }
 }
 
+// Hàm lấy danh sách tất cả bạn bè
+export async function getAllFriends(req, res) {
+    try {
+        const { ownId, count, page } = req.body;
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!ownId) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: ownId là bắt buộc' });
+        }
+
+        // Tìm tài khoản Zalo
+        const account = zaloAccounts.find(acc => acc.ownId === ownId);
+        if (!account) {
+            return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này' });
+        }
+
+        // Gọi hàm getAllFriends từ zca-js với count và page mặc định nếu không cung cấp
+        const result = await account.api.getAllFriends(count || 20000, page || 1);
+
+        // Trả về kết quả
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 export async function loginZaloAccount(customProxy, cred) {
     let loginResolve;
     return new Promise(async (resolve, reject) => {
