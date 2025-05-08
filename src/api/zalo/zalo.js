@@ -366,6 +366,32 @@ export async function getAllFriends(req, res) {
     }
 }
 
+// Hàm lấy danh sách tất cả nhóm
+export async function getAllGroups(req, res) {
+    try {
+        const { ownId } = req.body;
+
+        // Kiểm tra dữ liệu đầu vào
+        if (!ownId) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: ownId là bắt buộc' });
+        }
+
+        // Tìm tài khoản Zalo
+        const account = zaloAccounts.find(acc => acc.ownId === ownId);
+        if (!account) {
+            return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này' });
+        }
+
+        // Gọi hàm getAllGroups từ zca-js
+        const result = await account.api.getAllGroups();
+
+        // Trả về kết quả
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
 export async function loginZaloAccount(customProxy, cred) {
     let loginResolve;
     return new Promise(async (resolve, reject) => {
