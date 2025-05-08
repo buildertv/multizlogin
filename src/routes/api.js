@@ -16,8 +16,12 @@ import {
     sendImagesToUser,
     sendImageToGroup,
     sendImagesToGroup,
-    sendVoice // Thêm sendVoice
-} from '../api/zalo/zalo.js';
+    sendVoice,
+    getAllFriends,
+    getAllGroups, 
+    sendTypingEvent,
+    sendSticker // Thêm sendSticker
+    } from '../api/zalo/zalo.js';
 import { validateUser, adminMiddleware, addUser, getAllUsers, changePassword } from '../services/authService.js';
 import {
     getWebhookUrl,
@@ -277,6 +281,10 @@ router.post('/sendImagesToUser', sendImagesToUser);
 router.post('/sendImageToGroup', sendImageToGroup);
 router.post('/sendImagesToGroup', sendImagesToGroup);
 router.post('/sendVoice', sendVoice); // Thêm route cho sendVoice
+router.post('/getAllFriends', getAllFriends);
+router.post('/getAllGroups', getAllGroups);
+router.post('/sendTypingEvent', sendTypingEvent);
+router.post('/sendSticker', sendSticker);
 
 // API kiểm tra trạng thái session
 router.get('/session-test', (req, res) => {
