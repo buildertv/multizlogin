@@ -349,8 +349,12 @@ export const publicRoutes = [
   '/api/removeUserFromGroup',
   '/api/sendImageToUser',
   '/api/sendImagesToUser',
-  '/api/sendImageToGroup',
-  '/api/sendImagesToGroup'
+  '/api/sendImagesToGroup',
+  '/api/sendVoice',        // Thêm nếu cần
+  '/api/getAllFriends',   // Thêm nếu cần
+  '/api/getAllGroups',    // Thêm để bỏ yêu cầu đăng nhập
+  '/api/sendTypingEvent', // Thêm nếu cần
+  '/api/sendSticker'      // Thêm nếu cần 
 ];
 
 // Kiểm tra xem route có phải là public hay không
