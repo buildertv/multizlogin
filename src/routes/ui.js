@@ -12,6 +12,25 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Trang quản lý nội bộ hiển thị như index cũ
+router.get('/ht', (req, res) => {
+    let authenticated = false;
+    let username = '';
+    let isAdmin = false;
+
+    if (req.session && req.session.authenticated) {
+      authenticated = true;
+      username = req.session.username;
+      isAdmin = req.session.role === 'admin';
+    }
+
+    res.render('ht', {
+      authenticated: authenticated,
+      username: username,
+      isAdmin: isAdmin
+    });
+});
+
 // Đường dẫn đến thư mục views
 const viewsPath = path.join(__dirname, '..', 'views');
 
