@@ -1,32 +1,45 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
 
-# Bước 0: Tự xác định thư mục gốc của repo
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-cd "$REPO_ROOT"
-
-echo "📂 Repo root: $REPO_ROOT"
-
-# Bước 1: Chuẩn bị thư mục dữ liệu & file .env
+# Tạo thư mục zalo_data và cookies
 mkdir -p zalo_data/cookies
 
-if [ -f ./.env.example ] && [ ! -f ./.env ]; then
-  echo "Tạo .env từ .env.example"
-  cp .env.example .env
+# Tạo proxies.json nếu chưa tồn tại
+if [ ! -f "./zalo_data/proxies.json" ]; then
+    echo "[]" > ./zalo_data/proxies.json
+    echo "Created empty proxies.json"
 fi
 
-echo "Copy .env vào zalo_data/.env"
-cp -f ./.env ./zalo_data/.env
+# Xử lý .env
+if [ -f "./.env.example" ]; then
+    echo "Found .env.example, using it as template..."
+    
+    if [ ! -f "./.env" ]; then
+        cp .env.example .env
+        echo "Created .env from .env.example in root directory"
+    else
+        echo "Root .env file already exists"
+    fi
 
-# Bước 2: Dừng & xóa container/volume cũ
-echo "🛑 Dừng & xóa container/volume cũ"
-docker compose down --volumes --remove-orphans
+    cp .env ./zalo_data/.env
+    echo "Copied .env to zalo_data directory for Docker"
+else
+    echo "No .env.example found, creating default .env files..."
 
-# Bước 3: Build & khởi container mới
-echo "🏗️ Build & chạy lại với --build"
-docker compose up -d --build
+    if [ ! -f "./zalo_data/.env" ]; then
+        cat > ./zalo_data/.env <<EOF
+MESSAGE_WEBHOOK_URL=
+GROUP_EVENT_WEBHOOK_URL=
+REACTION_WEBHOOK_URL=
+PORT=3000
+EOF
+        echo "Created default .env template in zalo_data directory"
+    fi
 
-# Bước 4: Thông báo hoàn tất
-echo "✅ Hoàn tất! Container đang chạy:"
-docker ps --filter "name=zalo-server"
+    if [ ! -f "./.env" ]; then
+        cp ./zalo_data/.env ./.env
+        echo "Created .env file in root directory for local development"
+    fi
+fi
+
+echo "✅ Setup completed. You can now run: docker compose up -d --build"
+echo "🛠 Đừng quên cập nhật file .env với webhook thực tế!"
