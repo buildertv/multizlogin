@@ -20,6 +20,7 @@ import {
     getAllFriends,
     getAllGroups, 
     sendTypingEvent,
+    sendQuoteMessageByAccount, //thêm 09.08.2025
     sendSticker // Thêm sendSticker
     } from '../api/zalo/zalo.js';
 import { validateUser, adminMiddleware, addUser, getAllUsers, changePassword } from '../services/authService.js';
@@ -281,6 +282,7 @@ router.post('/sendImagesToUser', sendImagesToUser);
 router.post('/sendImageToGroup', sendImageToGroup);
 router.post('/sendImagesToGroup', sendImagesToGroup);
 router.post('/sendVoice', sendVoice); // Thêm route cho sendVoice
+router.post('/sendQuoteMessageByAccount', sendQuoteMessageByAccount); // Thêm route cho sendQuoteMessageByAccount
 router.post('/getAllFriends', getAllFriends);
 router.post('/getAllGroups', getAllGroups);
 router.post('/sendTypingEvent', sendTypingEvent);
