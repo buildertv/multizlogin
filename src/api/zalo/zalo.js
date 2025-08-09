@@ -154,17 +154,6 @@ export async function removeUserFromGroup(req, res) {
     }
 }
 // HÀM MỚI: Gửi tin nhắn kèm quote (trả lời) 09.08.2025
- * Gửi tin nhắn có trích dẫn (quote).
- * PHIÊN BẢN TỐI ƯU: Nhận toàn bộ đối tượng tin nhắn gốc để trích dẫn.
- * Dữ liệu yêu cầu (body):
- * {
- *   "message": "Nội dung tin nhắn trả lời",
- *   "threadId": "ID của cuộc trò chuyện",
- *   "ownId": "ID của tài khoản Zalo gửi tin",
- *   "type": 0, // 0 cho User, 1 cho Group
- *   "quoteMessage": { ... } // Toàn bộ đối tượng 'data' từ webhook
- * }
- */
 export async function sendQuoteMessage(req, res) {
     try {
         // Đổi tên 'quote' thành 'quoteMessage' để rõ ràng hơn
