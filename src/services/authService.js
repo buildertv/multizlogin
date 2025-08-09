@@ -350,6 +350,7 @@ export const publicRoutes = [
   '/api/sendImageToUser',
   '/api/sendImagesToUser',
   '/api/sendImagesToGroup',
+  '/api/sendquotemessage', // thêm 09.08.2025
   '/api/sendVoice',        // Thêm nếu cần
   '/api/getAllFriends',   // Thêm nếu cần
   '/api/getAllGroups',    // Thêm để bỏ yêu cầu đăng nhập
