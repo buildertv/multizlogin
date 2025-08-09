@@ -613,6 +613,23 @@ export async function loginZaloAccount(customProxy, cred) {
                 });
             }
 
+            // =================================================================
+            // === BẮT ĐẦU: ĐOẠN CODE DEBUG ĐỂ GHI LOG CẤU TRÚC MESSAGE ===
+            // =================================================================
+            console.log('[DEBUG] Bật listener tạm thời để ghi log cấu trúc tin nhắn.');
+            api.listener.on("message", (message) => {
+                // Chỉ ghi log nếu đó không phải là tin nhắn tự gửi đi
+                if (!message.isSelf) {
+                    console.log("\n\n--- [DEBUG] CẤU TRÚC MESSAGE CHUẨN TỪ LISTENER ---");
+                    // Sử dụng JSON.stringify để in ra toàn bộ đối tượng một cách chi tiết
+                    console.log(JSON.stringify(message, null, 4)); 
+                    console.log("--- [DEBUG] KẾT THÚC CẤU TRÚC MESSAGE ---\n\n");
+                }
+            });
+            // =================================================================
+            // === KẾT THÚC: ĐOẠN CODE DEBUG                                ===
+            // =================================================================
+            
             api.listener.onConnected(() => {
                 console.log("Zalo SDK đã kết nối");
                 resolve(true);
