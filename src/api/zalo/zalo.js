@@ -154,19 +154,28 @@ export async function removeUserFromGroup(req, res) {
     }
 }
 // HÀM MỚI: Gửi tin nhắn kèm quote (trả lời) 09.08.2025
-    export async function sendQuoteMessage(req, res) {
+ * Gửi tin nhắn có trích dẫn (quote).
+ * PHIÊN BẢN TỐI ƯU: Nhận toàn bộ đối tượng tin nhắn gốc để trích dẫn.
+ * Dữ liệu yêu cầu (body):
+ * {
+ *   "message": "Nội dung tin nhắn trả lời",
+ *   "threadId": "ID của cuộc trò chuyện",
+ *   "ownId": "ID của tài khoản Zalo gửi tin",
+ *   "type": 0, // 0 cho User, 1 cho Group
+ *   "quoteMessage": { ... } // Toàn bộ đối tượng 'data' từ webhook
+ * }
+ */
+export async function sendQuoteMessage(req, res) {
     try {
-        const { message, threadId, ownId, type, quote } = req.body;
+        // Đổi tên 'quote' thành 'quoteMessage' để rõ ràng hơn
+        const { message, threadId, ownId, type, quoteMessage } = req.body;
 
         // 1. Kiểm tra dữ liệu đầu vào
-        if (!message || !threadId || !ownId) {
-            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: message, threadId, và ownId là bắt buộc.' });
-        }
-        if (!quote || !quote.msgId || !quote.uidFrom || !quote.content) {
-            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: quote phải chứa msgId, uidFrom, và content.' });
+        if (!message || !threadId || !ownId || !quoteMessage) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: message, threadId, ownId, và quoteMessage là bắt buộc.' });
         }
 
-        // 2. Tìm tài khoản Zalo để gửi tin
+        // 2. Tìm tài khoản Zalo
         const account = zaloAccounts.find(acc => acc.ownId === ownId);
         if (!account) {
             return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này.' });
@@ -176,15 +185,8 @@ export async function removeUserFromGroup(req, res) {
         const msgType = (type === 1) ? ThreadType.Group : ThreadType.User;
         const messagePayload = {
             msg: message,
-            quote: {
-                msgId: quote.msgId,
-                uidFrom: quote.uidFrom,
-                content: quote.content,
-                // Các trường tùy chọn khác có thể thêm vào nếu cần
-                msgType: 'text', 
-                cliMsgId: Date.now().toString(),
-                ts: Date.now(),
-            }
+            // Chỉ cần truyền thẳng đối tượng tin nhắn gốc vào đây
+            quote: quoteMessage 
         };
 
         // 4. Gửi tin nhắn và trả về kết quả
