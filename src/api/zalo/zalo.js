@@ -186,11 +186,13 @@ export async function sendQuoteMessage(req, res) {
         // 4. Xây dựng lại đối tượng quote để đảm bảo đầy đủ các trường
         const quoteData = {
             content: originalQuote.content,
-            msgType: 'text', // Luôn đặt là 'text' cho quote để đảm bảo tương thích
+            msgType: 'text',
             uidFrom: originalQuote.uidFrom,
             msgId: originalQuote.msgId,
-            ts: originalQuote.ts || Date.now(), // Thêm timestamp
-            cliMsgId: originalQuote.cliMsgId || Date.now().toString() // Thêm cliMsgId
+            ts: originalQuote.ts || Date.now(),
+            cliMsgId: originalQuote.cliMsgId || Date.now().toString(),
+            ttl: originalQuote.ttl || 0, // <-- Thêm dòng này
+            propertyExt: originalQuote.propertyExt || {} // <-- Thêm dòng này
         };
         console.log('Đối tượng quote đã được chuẩn hóa:', JSON.stringify(quoteData, null, 2));
 
