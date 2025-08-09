@@ -154,52 +154,49 @@ export async function removeUserFromGroup(req, res) {
     }
 }
 // HÀM MỚI: Gửi tin nhắn kèm quote (trả lời) 09.08.2025
-export async function sendQuoteMessage(req, res) {
-    console.log('---------------------------------');
-    console.log('Nhận được yêu cầu gửi tin nhắn quote...');
-    console.log('Request Body:', JSON.stringify(req.body, null, 2));
-
+    export async function sendQuoteMessage(req, res) {
     try {
-        const { message, threadId, type, ownId, quote: originalQuote } = req.body;
+        const { message, threadId, ownId, type, quote } = req.body;
 
-        if (!message || !threadId || !ownId || !originalQuote) {
-            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: message, threadId, ownId, và quote là bắt buộc' });
+        // 1. Kiểm tra dữ liệu đầu vào
+        if (!message || !threadId || !ownId) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: message, threadId, và ownId là bắt buộc.' });
+        }
+        if (!quote || !quote.msgId || !quote.uidFrom || !quote.content) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: quote phải chứa msgId, uidFrom, và content.' });
         }
 
+        // 2. Tìm tài khoản Zalo để gửi tin
         const account = zaloAccounts.find(acc => acc.ownId === ownId);
         if (!account) {
-            console.error(`Không tìm thấy tài khoản Zalo với OwnId: ${ownId}`);
-            return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này' });
+            return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này.' });
         }
-        console.log(`Đã tìm thấy tài khoản: ${account.phoneNumber} (${account.ownId})`);
 
-        const msgType = type === 1 ? ThreadType.Group : ThreadType.User;
-
-        // Xây dựng đối tượng quote đầy đủ nhất có thể từ dữ liệu nhận được
-        const quoteData = {
-            content: originalQuote.content,
-            msgType: originalQuote.msgType, // Gửi đúng msgType gốc là 'webchat'
-            uidFrom: originalQuote.uidFrom,
-            msgId: originalQuote.msgId,
-            ts: originalQuote.ts || Date.now(),
-            cliMsgId: originalQuote.cliMsgId || Date.now().toString(),
-            ttl: originalQuote.ttl || 0,
-            propertyExt: originalQuote.propertyExt || {} // Lấy propertyExt từ request
+        // 3. Chuẩn bị payload cho thư viện zca-js
+        const msgType = (type === 1) ? ThreadType.Group : ThreadType.User;
+        const messagePayload = {
+            msg: message,
+            quote: {
+                msgId: quote.msgId,
+                uidFrom: quote.uidFrom,
+                content: quote.content,
+                // Các trường tùy chọn khác có thể thêm vào nếu cần
+                msgType: 'text', 
+                cliMsgId: Date.now().toString(),
+                ts: Date.now(),
+            }
         };
-        console.log('Đối tượng quote đã được chuẩn hóa (CHUẨN CUỐI CÙNG):', JSON.stringify(quoteData, null, 2));
 
-        console.log(`Đang gửi tin nhắn QUOTE tới thread ${threadId} với type ${msgType}...`);
-        const result = await account.api.sendMessage({ msg: message, quote: quoteData }, threadId, msgType);
-        
-        console.log('Kết quả trả về từ zca-js:', JSON.stringify(result, null, 2));
+        // 4. Gửi tin nhắn và trả về kết quả
+        const result = await account.api.sendMessage(messagePayload, threadId, msgType);
         res.json({ success: true, data: result });
-        console.log('Đã gửi phản hồi thành công về cho client.');
 
     } catch (error) {
-        console.error('!!! LỖI TRONG HÀM sendQuoteMessage:', error);
+        console.error('Lỗi khi gửi tin nhắn quote:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 }
+
 
 // Hàm gửi một hình ảnh đến người dùng
 export async function sendImageToUser(req, res) {
