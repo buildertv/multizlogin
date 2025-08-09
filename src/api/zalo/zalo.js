@@ -153,15 +153,16 @@ export async function removeUserFromGroup(req, res) {
         res.status(500).json({ success: false, error: error.message });
     }
 }
-// HÀM MỚI: Gửi tin nhắn kèm quote (trả lời) 09.08.2025
+// ... các hàm khác giữ nguyên ...
+
+// HÀM GỬI TIN NHẮN QUOTE - PHIÊN BẢN HOÀN THIỆN (10/08/2025)
 export async function sendQuoteMessage(req, res) {
     try {
-        // Đổi tên 'quote' thành 'quoteMessage' để rõ ràng hơn
-        const { message, threadId, ownId, type, quoteMessage } = req.body;
+        const { message, threadId, ownId, type, quoteData } = req.body;
 
         // 1. Kiểm tra dữ liệu đầu vào
-        if (!message || !threadId || !ownId || !quoteMessage) {
-            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: message, threadId, ownId, và quoteMessage là bắt buộc.' });
+        if (!message || !threadId || !ownId || !quoteData) {
+            return res.status(400).json({ error: 'Dữ liệu không hợp lệ: message, threadId, ownId, và quoteData là bắt buộc.' });
         }
 
         // 2. Tìm tài khoản Zalo
@@ -170,23 +171,34 @@ export async function sendQuoteMessage(req, res) {
             return res.status(400).json({ error: 'Không tìm thấy tài khoản Zalo với OwnId này.' });
         }
 
-        // 3. Chuẩn bị payload cho thư viện zca-js
+        // 3. *** XÂY DỰNG LẠI ĐỐI TƯỢNG MESSAGE CHUẨN ***
+        // Đây là bước quan trọng nhất để khắc phục lỗi "Invalid quote message"
+        const fullQuoteMessageObject = {
+            type: type, // 0 cho User, 1 cho Group
+            data: quoteData, // quoteData chính là đối tượng data từ webhook
+            threadId: threadId,
+            isSelf: false // Luôn là false vì chúng ta đang trả lời tin nhắn của người khác
+        };
+
+        // 4. Chuẩn bị payload cuối cùng cho thư viện
         const msgType = (type === 1) ? ThreadType.Group : ThreadType.User;
         const messagePayload = {
             msg: message,
-            // Chỉ cần truyền thẳng đối tượng tin nhắn gốc vào đây
-            quote: quoteMessage 
+            quote: fullQuoteMessageObject // Truyền vào đối tượng đã được tái cấu trúc hoàn chỉnh
         };
 
-        // 4. Gửi tin nhắn và trả về kết quả
+        console.log("Sending quote with RECONSTRUCTED payload:", JSON.stringify(messagePayload, null, 2));
+
+        // 5. Gửi tin nhắn
         const result = await account.api.sendMessage(messagePayload, threadId, msgType);
         res.json({ success: true, data: result });
 
     } catch (error) {
-        console.error('Lỗi khi gửi tin nhắn quote:', error);
+        console.error('Lỗi chi tiết khi gửi tin nhắn quote:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 }
+
 
 
 // Hàm gửi một hình ảnh đến người dùng
