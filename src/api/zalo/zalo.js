@@ -153,7 +153,54 @@ export async function removeUserFromGroup(req, res) {
         res.status(500).json({ success: false, error: error.message });
     }
 }
+// API gửi tin nhắn quote với account selection cập nhật 09/08/2025
+export async function sendQuoteMessageByAccount(req, res) {
+    try {
+        const { message, threadId, type, accountSelection, quote } = req.body;
 
+        if (!message || !threadId || !accountSelection) {
+            return res.status(400).json({ error: 'Tin nhắn, threadId và accountSelection là bắt buộc' });
+        }
+
+        if (!quote || !quote.msgId || !quote.uidFrom || !quote.content) {
+            return res.status(400).json({ error: 'Dữ liệu quote không hợp lệ: cần msgId, uidFrom và content' });
+        }
+
+        const account = getAccountFromSelection(accountSelection);
+        const msgType = type || ThreadType.User;
+
+        const quoteData = {
+            content: quote.content,
+            msgType: quote.msgType || 'text',
+            uidFrom: quote.uidFrom,
+            msgId: quote.msgId,
+            cliMsgId: quote.cliMsgId || Date.now().toString(),
+            ts: quote.ts || Date.now(),
+            ttl: quote.ttl || 0,
+            propertyExt: quote.propertyExt || {}
+        };
+
+        const result = await account.api.sendMessage(
+            {
+                msg: message,
+                quote: quoteData
+            },
+            threadId,
+            msgType
+        );
+
+        res.json({
+            success: true,
+            data: result,
+            usedAccount: {
+                ownId: account.ownId,
+                phoneNumber: account.phoneNumber
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
 // Hàm gửi một hình ảnh đến người dùng
 export async function sendImageToUser(req, res) {
     try {
