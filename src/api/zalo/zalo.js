@@ -186,7 +186,7 @@ export async function sendQuoteMessage(req, res) {
         // 4. Xây dựng lại đối tượng quote để đảm bảo đầy đủ các trường
         const quoteData = {
             content: originalQuote.content,
-            msgType: originalQuote.msgType || 'text', // Mặc định là 'text' nếu không có
+            msgType: 'text', // Luôn đặt là 'text' cho quote để đảm bảo tương thích
             uidFrom: originalQuote.uidFrom,
             msgId: originalQuote.msgId,
             ts: originalQuote.ts || Date.now(), // Thêm timestamp
