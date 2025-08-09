@@ -154,25 +154,18 @@ export async function removeUserFromGroup(req, res) {
     }
 }
 // HÀM MỚI: Gửi tin nhắn kèm quote (trả lời) 09.08.2025
-// Thay thế hàm sendQuoteMessage cũ bằng hàm này
 export async function sendQuoteMessage(req, res) {
     console.log('---------------------------------');
     console.log('Nhận được yêu cầu gửi tin nhắn quote...');
-    console.log('Request Body:', JSON.stringify(req.body, null, 2)); // Log dữ liệu nhận được
+    console.log('Request Body:', JSON.stringify(req.body, null, 2));
 
     try {
         const { message, threadId, type, ownId, quote: originalQuote } = req.body;
 
-        // 1. Kiểm tra dữ liệu đầu vào
         if (!message || !threadId || !ownId || !originalQuote) {
             return res.status(400).json({ error: 'Dữ liệu không hợp lệ: message, threadId, ownId, và quote là bắt buộc' });
         }
 
-        if (!originalQuote.msgId || !originalQuote.uidFrom || !originalQuote.content) {
-            return res.status(400).json({ error: 'Dữ liệu quote không hợp lệ: cần có msgId, uidFrom và content' });
-        }
-
-        // 2. Tìm tài khoản Zalo
         const account = zaloAccounts.find(acc => acc.ownId === ownId);
         if (!account) {
             console.error(`Không tìm thấy tài khoản Zalo với OwnId: ${ownId}`);
@@ -180,40 +173,30 @@ export async function sendQuoteMessage(req, res) {
         }
         console.log(`Đã tìm thấy tài khoản: ${account.phoneNumber} (${account.ownId})`);
 
-        // 3. Xác định loại cuộc trò chuyện
         const msgType = type === 1 ? ThreadType.Group : ThreadType.User;
 
-        // 4. Xây dựng lại đối tượng quote để đảm bảo đầy đủ các trường
+        // Xây dựng đối tượng quote đầy đủ nhất có thể từ dữ liệu nhận được
         const quoteData = {
             content: originalQuote.content,
-            msgType: 'text',
+            msgType: originalQuote.msgType, // Gửi đúng msgType gốc là 'webchat'
             uidFrom: originalQuote.uidFrom,
             msgId: originalQuote.msgId,
             ts: originalQuote.ts || Date.now(),
             cliMsgId: originalQuote.cliMsgId || Date.now().toString(),
-            ttl: originalQuote.ttl || 0, // <-- Thêm dòng này
-            propertyExt: originalQuote.propertyExt || {} // <-- Thêm dòng này
+            ttl: originalQuote.ttl || 0,
+            propertyExt: originalQuote.propertyExt || {} // Lấy propertyExt từ request
         };
-        console.log('Đối tượng quote đã được chuẩn hóa:', JSON.stringify(quoteData, null, 2));
+        console.log('Đối tượng quote đã được chuẩn hóa (CHUẨN CUỐI CÙNG):', JSON.stringify(quoteData, null, 2));
 
-        // 5. Gọi API của zca-js
-        console.log(`Đang gửi tin nhắn tới thread ${threadId} với type ${msgType}...`);
-        const result = await account.api.sendMessage(
-            {
-                msg: message,
-                quote: quoteData
-            },
-            threadId,
-            msgType
-        );
-
-        // 6. Log kết quả trả về từ thư viện và gửi response
+        console.log(`Đang gửi tin nhắn QUOTE tới thread ${threadId} với type ${msgType}...`);
+        const result = await account.api.sendMessage({ msg: message, quote: quoteData }, threadId, msgType);
+        
         console.log('Kết quả trả về từ zca-js:', JSON.stringify(result, null, 2));
         res.json({ success: true, data: result });
         console.log('Đã gửi phản hồi thành công về cho client.');
 
     } catch (error) {
-        console.error('!!! LỖI TRONG HÀM sendQuoteMessage:', error); // Log lỗi đầy đủ
+        console.error('!!! LỖI TRONG HÀM sendQuoteMessage:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 }
